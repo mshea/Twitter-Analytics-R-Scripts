@@ -45,10 +45,12 @@ generateChart <- function(d, title) {
 	# d has the columns "score", "dayofweek", and "hour".
 	# title is a string of text to display at the top
 	maxscores <- maxDailyScores(d)
-	par(mfrow=c(7,1), mar=c(1,3,1,.1), lwd=4, oma=c(3,0,3,.2))
+	par(mfrow=c(7,1), mar=c(1,3,0,.1), lwd=4, oma=c(3,0,3,.2))
 	for (i in 0:6) {
 		dw <- subset(d, d$dayofweek == i)
 		scorebyhour <- aggregate(scores ~ hour, dw, sum)
+
+		topthreescores <- scorebyhour[order(-scorebyhour$scores),][c(1:3),]
 
 		## Go through each data set. If there are empty hours, fill them with 0
 		for (j in 0:23) {
@@ -57,13 +59,14 @@ generateChart <- function(d, title) {
 			}
 		}
 		scorebyhour <- scorebyhour[with(scorebyhour, order(hour)),]
-		plot(c(0:23), frame=F, font.main = 1, main="", type="n", ylim=c(0,maxDailyScores(d)), yaxt='n', xaxt="n", xlab="", ylab="", col='#333333')
+		plot(c(0:23), frame=F, font.main = 1, main="", type="n", ylim=c(0,maxDailyScores(d)*1.3), yaxt='n', xaxt="n", xlab="", ylab="", col='#333333')
 		lines(scorebyhour$hour, rep(0,times=length(scorebyhour$hour)), col="#cccccc")
 		lines(scorebyhour, col="#333333")
 		axis(2, at=1, labels=daysofweek[i+1], tick=F, padj=0)
+		text(topthreescores, labels=topthreescores$score, cex=.6, pos=3)
 	}
 	axis(side=1, pos=c(0), at=seq(from=0, to=22, by=2), lwd="1", lwd.ticks="2", col="#cccccc", labels=hourlabels)
-	mtext(title, outer = TRUE, cex = 1)	
+	mtext(title, outer = TRUE, cex = 1)
 }
 
 png(filename="~/Desktop/twitter_engagement_by_day_and_hour.png", height=1600, width=1600, pointsize=50)
