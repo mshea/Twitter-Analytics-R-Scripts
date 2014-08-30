@@ -18,7 +18,7 @@ d$dateobj <- as.POSIXct(strptime(d$time, "%Y-%m-%d %H:%M +0000", tz="GMT"), "GMT
 d$hour <- as.POSIXlt(d$dateobj, tz="America/New_York")$hour
 
 # Build hour labels for our chart
-hourlabels <- c("12a","2a","4a","6a","8a","10a","12p","2p","4p","6p","8p","10p")
+hourlabels <- c("12a","4a","8a","12p","4p","8p")
 
 # Create a column for the day of the week (0 = Sunday)
 d$dayofweek <- as.POSIXlt.date(strptime(d$time, "%Y-%m-%d %H:%M +0000"))$wday
@@ -45,12 +45,12 @@ generateChart <- function(d, title) {
 	# d has the columns "score", "dayofweek", and "hour".
 	# title is a string of text to display at the top
 	maxscores <- maxDailyScores(d)
-	par(mfrow=c(7,1), mar=c(1,3,0,.1), lwd=4, oma=c(3,0,3,.2))
+	par(mfrow=c(7,1), mar=c(0,3,0,0), lwd=1, oma=c(3,.1,3,.2))
 	for (i in 0:6) {
 		dw <- subset(d, d$dayofweek == i)
 		scorebyhour <- aggregate(scores ~ hour, dw, sum)
 
-		topthreescores <- scorebyhour[order(-scorebyhour$scores),][c(1:3),]
+		topthreescores <- scorebyhour[order(-scorebyhour$scores),][c(1:1),]
 
 		## Go through each data set. If there are empty hours, fill them with 0
 		for (j in 0:23) {
@@ -59,22 +59,29 @@ generateChart <- function(d, title) {
 			}
 		}
 		scorebyhour <- scorebyhour[with(scorebyhour, order(hour)),]
-		plot(c(0:23), frame=F, font.main = 1, main="", type="n", ylim=c(0,maxDailyScores(d)*1.3), yaxt='n', xaxt="n", xlab="", ylab="", col='#333333')
-		lines(scorebyhour$hour, rep(0,times=length(scorebyhour$hour)), col="#cccccc")
+		plot(c(0:23), frame=F, font.main = 1, main="", type="n", ylim=c(0,maxDailyScores(d)*1.5), yaxt='n', xaxt="n", xlab="", ylab="", col='#333333')
+		#lines(scorebyhour$hour, rep(0,times=length(scorebyhour$hour)), col="#333333")
 		lines(scorebyhour, col="#333333")
 		axis(2, at=1, labels=daysofweek[i+1], tick=F, padj=0)
-		text(topthreescores, labels=topthreescores$score, cex=.6, pos=3)
+		text(topthreescores, labels=topthreescores$score, cex=.7, pos=3)
 	}
-	axis(side=1, pos=c(0), at=seq(from=0, to=22, by=2), lwd="1", lwd.ticks="2", col="#cccccc", labels=hourlabels)
+	axis(side=1, at=seq(from=0, to=22, by=4), lwd="0", lwd.ticks="0", col="#cccccc", labels=hourlabels)
 	mtext(title, outer = TRUE, cex = 1)
 }
 
-png(filename="~/Desktop/twitter_engagement_by_day_and_hour.png", height=1600, width=1600, pointsize=50)
 d$scores <- d$engagements
+svg(filename="~/Desktop/twitter_engagement_by_day_and_hour.svg", pointsize=16, height=6, width=6)
+generateChart(d, "Engagements by Hour and Weekday")
+dev.off()
+png(filename="~/Desktop/twitter_engagement_by_day_and_hour.png", height=1600, width=1600, pointsize=50)
 generateChart(d, "Engagements by Hour and Weekday")
 dev.off()
 
-png(filename="~/Desktop/twitter_impressions_by_day_and_hour.png", height=1600, width=1600, pointsize=50)
 d$scores <- d$impressions
+svg(filename="~/Desktop/twitter_impressions_by_day_and_hour.svg", pointsize=16, height=6, width=6)
 generateChart(d, "Impressions by Hour and Weekday")
 dev.off()
+png(filename="~/Desktop/twitter_impressions_by_day_and_hour.png", height=1600, width=1600, pointsize=50)
+generateChart(d, "Impressions by Hour and Weekday")
+dev.off()
+
